@@ -6,7 +6,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "seed": "node scripts/seed.js",
+    "seed:reset": "node scripts/seed.js --reset",
+    "db:reset": "node scripts/seed.js --reset-db",
+    "db:clear": "node scripts/seed.js --clear-db"
   },
   "keywords": [],
   "author": "Panshak Solomon",

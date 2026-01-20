@@ -6,7 +6,6 @@ import cors from 'cors'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import nodemailer from 'nodemailer'
-import pdf from 'html-pdf'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
@@ -36,24 +35,32 @@ app.use('/users', userRoutes)
 app.use('/public', publicRoutes)
 app.use('/profiles', profile)
 
-// NODEMAILER TRANSPORT FOR SENDING INVOICE VIA EMAIL
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-})
-
-
 var options = { format: 'A4' };
 //SEND PDF INVOICE VIA EMAIL
-app.post('/send-pdf', (req, res) => {
+app.post('/send-pdf', async (req, res) => {
     const { email, company } = req.body
+
+    let pdf;
+    try {
+        const imported = await import('html-pdf');
+        pdf = imported.default;
+    } catch (error) {
+        return res.status(501).json({
+            message: 'PDF generation is not available in this build (html-pdf/phantomjs missing).',
+        });
+    }
+
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    })
 
     // pdf.create(pdfTemplate(req.body), {}).toFile('invoice.pdf', (err) => {
     pdf.create(pdfTemplate(req.body), options).toFile('invoice.pdf', (err) => {
@@ -86,7 +93,17 @@ app.post('/send-pdf', (req, res) => {
 // npm link phantomjs-prebuilt
 
 //CREATE AND SEND PDF INVOICE
-app.post('/create-pdf', (req, res) => {
+app.post('/create-pdf', async (req, res) => {
+    let pdf;
+    try {
+        const imported = await import('html-pdf');
+        pdf = imported.default;
+    } catch (error) {
+        return res.status(501).json({
+            message: 'PDF generation is not available in this build (html-pdf/phantomjs missing).',
+        });
+    }
+
     pdf.create(pdfTemplate(req.body), {}).toFile('invoice.pdf', (err) => {
         if (err) {
             res.send(Promise.reject());

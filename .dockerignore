@@ -1,0 +1,13 @@
+**/.DS_Store
+**/node_modules
+**/.cache
+**/build
+**/dist
+**/.next
+**/coverage
+.git
+.gitignore
+.vscode
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

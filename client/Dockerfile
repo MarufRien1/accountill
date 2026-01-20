@@ -4,11 +4,11 @@ ENV NODE_ENV production
 WORKDIR /app
 
 COPY client/package.json client/package-lock.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps --no-audit --no-fund
 
 COPY client .
 
-RUN npm run build
+RUN npx react-scripts build
 
 
 FROM nginx:1.21.0-alpine as production

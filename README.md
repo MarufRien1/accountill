@@ -163,6 +163,31 @@ And then
 docker-compose -f docker-compose.prod.yml up
 ```
 
+### Seeding dummy data
+
+Seed the database with demo Users/Profiles/Clients/Invoices (including paid/partial/unpaid invoices):
+
+```
+docker compose -f docker-compose.prod.yml exec server npm run seed:reset
+```
+
+Reset the entire database (drops the DB and recreates seed data):
+
+```
+docker compose -f docker-compose.prod.yml exec server npm run db:reset
+```
+
+Clear the database only (drops the DB without reseeding):
+
+```
+docker compose -f docker-compose.prod.yml exec server npm run db:clear
+```
+
+This creates demo accounts:
+
+- `demo@accountill.test` / `Password123!`
+- `owner@acme.test` / `Password123!`
+
 ## Comment
 I intend to keep adding more features to this application, so if you like it, please give it a star, that will encourage me to 
 to keep improving the project.
