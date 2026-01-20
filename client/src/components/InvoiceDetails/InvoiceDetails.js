@@ -28,7 +28,6 @@ import Spinner from '../Spinner/Spinner'
 
 import ProgressButton from 'react-progress-button'
 import axios from 'axios';
-import { saveAs } from 'file-saver';
 import Modal from '../Payments/Modal'
 import PaymentHistory from './PaymentHistory'
 
@@ -116,9 +115,19 @@ const InvoiceDetails = () => {
     history.push(`/edit/invoice/${id}`)
   }
 
-  const createAndDownloadPdf = () => {
+  const printInvoice = () => {
     setDownloadStatus('loading')
-    axios.post(`${process.env.REACT_APP_API}/create-pdf`,
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      setDownloadStatus('error')
+      return
+    }
+
+    printWindow.document.open()
+    printWindow.document.write('<!doctype html><html><head><title>Invoice</title></head><body>Loading…</body></html>')
+    printWindow.document.close()
+
+    axios.post(`${process.env.REACT_APP_API}/render-invoice`,
       {
         name: invoice.client.name,
         address: invoice.client.address,
@@ -138,15 +147,46 @@ const InvoiceDetails = () => {
         balanceDue: toCommas(total - totalAmountReceived),
         company: company,
       })
-      .then(() => axios.get(`${process.env.REACT_APP_API}/fetch-pdf`, { responseType: 'blob' }))
       .then((res) => {
-        const pdfBlob = new Blob([res.data], { type: 'application/pdf' });
+        printWindow.document.open()
+        printWindow.document.write(res.data)
+        printWindow.document.close()
 
-        saveAs(pdfBlob, 'invoice.pdf')
-      }).then(() => setDownloadStatus('success'))
+        // Wait for fonts/images before printing
+        const doPrint = async () => {
+          try {
+            if (printWindow.document.fonts && printWindow.document.fonts.ready) {
+              await printWindow.document.fonts.ready
+            }
+          } catch (e) {
+            // ignore
+          }
+
+          printWindow.focus()
+          printWindow.print()
+        }
+
+        // Close the window after printing (supported by most browsers)
+        printWindow.onafterprint = () => {
+          try {
+            printWindow.close()
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        // Some browsers need a short delay after document.write
+        setTimeout(doPrint, 250)
+      })
+      .then(() => setDownloadStatus('success'))
       .catch((error) => {
         console.log("Error downloading PDF:", error)
         setDownloadStatus('error')
+        try {
+          printWindow.close()
+        } catch (e) {
+          // ignore
+        }
       })
   }
 
@@ -187,9 +227,9 @@ const InvoiceDetails = () => {
       {invoice?.creator?.includes(user?.result?._id || user?.result?.googleId) && (
         <div className={styles.buttons}>
           <ProgressButton
-            onClick={createAndDownloadPdf}
+            onClick={printInvoice}
             state={downloadStatus}>
-            Download PDF
+            Print Preview
           </ProgressButton>
 
           <button

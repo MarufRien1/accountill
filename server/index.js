@@ -35,20 +35,28 @@ app.use('/users', userRoutes)
 app.use('/public', publicRoutes)
 app.use('/profiles', profile)
 
-var options = { format: 'A4' };
-//SEND PDF INVOICE VIA EMAIL
+// Render printable invoice HTML (client should open a new window and call window.print())
+app.post('/render-invoice', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.send(pdfTemplate(req.body))
+})
+
+// Legacy endpoints (server-side PDF generation removed in favor of browser printing)
+app.post('/create-pdf', (req, res) => {
+    res.status(410).json({
+        message: 'Server-side PDF generation has been removed. Use /render-invoice and window.print() from the browser.',
+    })
+})
+
+app.get('/fetch-pdf', (req, res) => {
+    res.status(410).json({
+        message: 'Server-side PDF generation has been removed. Use /render-invoice and window.print() from the browser.',
+    })
+})
+
+// SEND INVOICE EMAIL (HTML body only; users can print/save as PDF from the browser)
 app.post('/send-pdf', async (req, res) => {
     const { email, company } = req.body
-
-    let pdf;
-    try {
-        const imported = await import('html-pdf');
-        pdf = imported.default;
-    } catch (error) {
-        return res.status(501).json({
-            message: 'PDF generation is not available in this build (html-pdf/phantomjs missing).',
-        });
-    }
 
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -62,59 +70,20 @@ app.post('/send-pdf', async (req, res) => {
         }
     })
 
-    // pdf.create(pdfTemplate(req.body), {}).toFile('invoice.pdf', (err) => {
-    pdf.create(pdfTemplate(req.body), options).toFile('invoice.pdf', (err) => {
-
-        // send mail with defined transport object
-        transporter.sendMail({
-            from: ` Accountill <hello@accountill.com>`, // sender address
-            to: `${email}`, // list of receivers
-            replyTo: `${company.email}`,
-            subject: `Invoice from ${company.businessName ? company.businessName : company.name}`, // Subject line
-            text: `Invoice from ${company.businessName ? company.businessName : company.name}`, // plain text body
-            html: emailTemplate(req.body), // html body
-            attachments: [{
-                filename: 'invoice.pdf',
-                path: `${__dirname}/invoice.pdf`
-            }]
-        });
-
-        if (err) {
-            res.send(Promise.reject());
-        }
-        res.send(Promise.resolve());
-    });
-});
-
-
-//Problems downloading and sending invoice
-// npm install html-pdf -g
-// npm link html-pdf
-// npm link phantomjs-prebuilt
-
-//CREATE AND SEND PDF INVOICE
-app.post('/create-pdf', async (req, res) => {
-    let pdf;
     try {
-        const imported = await import('html-pdf');
-        pdf = imported.default;
+        await transporter.sendMail({
+            from: ` Accountill <hello@accountill.com>`,
+            to: `${email}`,
+            replyTo: `${company.email}`,
+            subject: `Invoice from ${company.businessName ? company.businessName : company.name}`,
+            text: `Invoice from ${company.businessName ? company.businessName : company.name}`,
+            html: emailTemplate(req.body),
+        })
+        res.send(Promise.resolve())
     } catch (error) {
-        return res.status(501).json({
-            message: 'PDF generation is not available in this build (html-pdf/phantomjs missing).',
-        });
+        console.log(error)
+        res.status(500).json({ message: error.message })
     }
-
-    pdf.create(pdfTemplate(req.body), {}).toFile('invoice.pdf', (err) => {
-        if (err) {
-            res.send(Promise.reject());
-        }
-        res.send(Promise.resolve());
-    });
-});
-
-//SEND PDF INVOICE
-app.get('/fetch-pdf', (req, res) => {
-    res.sendFile(`${__dirname}/invoice.pdf`)
 })
 
 
