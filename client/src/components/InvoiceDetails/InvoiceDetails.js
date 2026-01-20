@@ -50,7 +50,6 @@ const InvoiceDetails = () => {
   const { invoice } = useSelector((state) => state.invoices)
   const dispatch = useDispatch()
   const history = useHistory()
-  const [sendStatus, setSendStatus] = useState(null)
   const [downloadStatus, setDownloadStatus] = useState(null)
   // eslint-disable-next-line
   const [openSnackbar, closeSnackbar] = useSnackbar()
@@ -145,41 +144,9 @@ const InvoiceDetails = () => {
 
         saveAs(pdfBlob, 'invoice.pdf')
       }).then(() => setDownloadStatus('success'))
-  }
-
-
-  //SEND PDF INVOICE VIA EMAIL
-  const sendPdf = (e) => {
-    e.preventDefault()
-    setSendStatus('loading')
-
-    const baseUrl = window.location.origin.replace(/\/$/, '')
-    axios.post(`${process.env.REACT_APP_API}/send-pdf`,
-      {
-        name: invoice.client.name,
-        address: invoice.client.address,
-        phone: invoice.client.phone,
-        email: invoice.client.email,
-        dueDate: invoice.dueDate,
-        date: invoice.createdAt,
-        id: invoice.invoiceNumber,
-        notes: invoice.notes,
-        subTotal: toCommas(invoice.subTotal),
-        total: toCommas(invoice.total),
-        type: invoice.type,
-        vat: invoice.vat,
-        items: invoice.items,
-        status: invoice.status,
-        totalAmountReceived: toCommas(totalAmountReceived),
-        balanceDue: toCommas(total - totalAmountReceived),
-        link: `${baseUrl}/invoice/${invoice._id}`,
-        company: company,
-      })
-      // .then(() => console.log("invoice sent successfully"))
-      .then(() => setSendStatus('success'))
       .catch((error) => {
-        console.log(error)
-        setSendStatus('error')
+        console.log("Error downloading PDF:", error)
+        setDownloadStatus('error')
       })
   }
 
@@ -219,14 +186,6 @@ const InvoiceDetails = () => {
     <div className={styles.pageLayout}>
       {invoice?.creator?.includes(user?.result?._id || user?.result?.googleId) && (
         <div className={styles.buttons}>
-          <ProgressButton
-            onClick={sendPdf}
-            state={sendStatus}
-            onSuccess={() => openSnackbar("Invoice sent successfully")}
-          >
-            Send to Customer
-          </ProgressButton>
-
           <ProgressButton
             onClick={createAndDownloadPdf}
             state={downloadStatus}>
