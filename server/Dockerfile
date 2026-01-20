@@ -1,14 +1,12 @@
-FROM node:14-alpine AS builder
+FROM node:16-alpine
 ENV NODE_ENV production
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY server/package.json .
-RUN npm install
+COPY server/package.json server/package-lock.json ./
+RUN npm ci --omit=dev
 COPY server/ .
 
-RUN npm install && npm install nodemon --save-dev
-
 EXPOSE 5000
-CMD ["yarn", "start-prod"]
+CMD ["npm", "start"]

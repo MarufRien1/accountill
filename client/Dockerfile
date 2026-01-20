@@ -1,11 +1,10 @@
-FROM node:14-alpine AS builder
+FROM node:16-alpine AS builder
 ENV NODE_ENV production
 
 WORKDIR /app
 
-COPY client/package.json .
-COPY client/yarn.lock .
-RUN yarn install --production
+COPY client/package.json client/package-lock.json ./
+RUN npm ci
 
 COPY client .
 

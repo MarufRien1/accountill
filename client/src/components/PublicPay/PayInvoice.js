@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Container, Paper, Typography, TextField, Button, Grid } from '@material-ui/core'
+import { Container, Paper, Typography, TextField, Button, Grid, Box } from '@material-ui/core'
 import moment from 'moment'
 import Spinner from '../Spinner/Spinner'
 import { fetchPublicInvoice, payPublicInvoice } from '../../api'
@@ -89,10 +89,10 @@ const PayInvoice = () => {
 
 	if (error) {
 		return (
-			<Container maxWidth="sm" style={{ paddingTop: 32 }}>
-				<Paper style={{ padding: 24 }}>
+			<Container maxWidth="sm" style={{ paddingTop: 40, paddingBottom: 40 }}>
+				<Paper style={{ padding: 28 }} elevation={1}>
 					<Typography variant="h6">Unable to load invoice</Typography>
-					<Typography style={{ marginTop: 12, color: 'crimson' }}>{error}</Typography>
+					<Typography style={{ marginTop: 12, color: '#E11D48' }}>{error}</Typography>
 				</Paper>
 			</Container>
 		)
@@ -101,36 +101,39 @@ const PayInvoice = () => {
 	if (!invoice) return null
 
 	return (
-		<Container maxWidth="sm" style={{ paddingTop: 32, paddingBottom: 32 }}>
-			<Paper style={{ padding: 24 }} elevation={2}>
-				<Typography variant="h5" gutterBottom>
-					Pay Invoice {invoice.invoiceNumber ? `#${invoice.invoiceNumber}` : ''}
+		<Container maxWidth="sm" style={{ paddingTop: 40, paddingBottom: 56 }}>
+			<Box style={{ textAlign: 'center', marginBottom: 16 }}>
+				<Typography variant="overline" style={{ color: '#64748B', letterSpacing: 1.2 }}>
+					Accountill Payments
+				</Typography>
+			</Box>
+			<Paper style={{ padding: 28 }} elevation={1}>
+				<Typography variant="h5" gutterBottom style={{ fontWeight: 800 }}>
+					Pay invoice {invoice.invoiceNumber ? `#${invoice.invoiceNumber}` : ''}
 				</Typography>
 
-				<Typography variant="body2" style={{ color: 'gray' }} gutterBottom>
+				<Typography variant="body2" style={{ color: '#64748B' }} gutterBottom>
 					Due {invoice.dueDate ? moment(invoice.dueDate).format('MMMM Do YYYY') : '—'}
 				</Typography>
 
-				<Grid container spacing={2} style={{ marginTop: 8, marginBottom: 16 }}>
+				<Grid container spacing={2} style={{ marginTop: 8, marginBottom: 20 }}>
 					<Grid item xs={6}>
-						<Typography variant="overline" style={{ color: 'gray' }}>
+						<Typography variant="overline" style={{ color: '#64748B' }}>
 							Total
 						</Typography>
 						<Typography variant="h6">{toCommas(total)}</Typography>
 					</Grid>
 					<Grid item xs={6}>
-						<Typography variant="overline" style={{ color: 'gray' }}>
+						<Typography variant="overline" style={{ color: '#64748B' }}>
 							Balance Due
 						</Typography>
 						<Typography variant="h6">{toCommas(balanceDue)}</Typography>
 					</Grid>
 				</Grid>
 
-				{success && (
-					<Typography style={{ color: 'green', marginBottom: 12 }}>{success}</Typography>
-				)}
+				{success && <Typography style={{ color: '#16A34A', marginBottom: 12 }}>{success}</Typography>}
 
-				{error && <Typography style={{ color: 'crimson', marginBottom: 12 }}>{error}</Typography>}
+				{error && <Typography style={{ color: '#E11D48', marginBottom: 12 }}>{error}</Typography>}
 
 				<form onSubmit={handlePay}>
 					<TextField
@@ -186,7 +189,7 @@ const PayInvoice = () => {
 						</Grid>
 					</Grid>
 
-					<Typography variant="caption" style={{ display: 'block', color: 'gray', marginTop: 12 }}>
+					<Typography variant="caption" style={{ display: 'block', color: '#64748B', marginTop: 12 }}>
 						This is a mock payment form. Card details are not stored.
 					</Typography>
 

@@ -214,7 +214,7 @@ const InvoiceDetails = () => {
 
 
   return (
-    <div className={styles.PageLayout}>
+    <div className={styles.pageLayout}>
       {invoice?.creator?.includes(user?.result?._id || user?.result?.googleId) && (
         <div className={styles.buttons}>
           <ProgressButton
