@@ -152,6 +152,8 @@ const InvoiceDetails = () => {
   const sendPdf = (e) => {
     e.preventDefault()
     setSendStatus('loading')
+
+    const baseUrl = window.location.origin.replace(/\/$/, '')
     axios.post(`${process.env.REACT_APP_API}/send-pdf`,
       {
         name: invoice.client.name,
@@ -170,7 +172,7 @@ const InvoiceDetails = () => {
         status: invoice.status,
         totalAmountReceived: toCommas(totalAmountReceived),
         balanceDue: toCommas(total - totalAmountReceived),
-        link: `${process.env.REACT_APP_URL}/invoice/${invoice._id}`,
+        link: `${baseUrl}/invoice/${invoice._id}`,
         company: company,
       })
       // .then(() => console.log("invoice sent successfully"))
@@ -187,7 +189,7 @@ const InvoiceDetails = () => {
 
   const copyPaymentLink = async () => {
     try {
-      const baseUrl = (process.env.REACT_APP_URL || window.location.origin).replace(/\/$/, '')
+      const baseUrl = window.location.origin.replace(/\/$/, '')
       const link = `${baseUrl}/pay/${invoice?.publicId}`
       await navigator.clipboard.writeText(link)
       openSnackbar('Payment link copied')
